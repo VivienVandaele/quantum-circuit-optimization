@@ -16,6 +16,24 @@ impl PauliProduct {
         }
     }
 
+    pub unsafe fn is_commuting(&self, p: &PauliProduct) -> bool {
+        let mut x1z2 = self.z.clone();
+        x1z2.and(&p.x);
+        let mut ac = self.x.clone();
+        ac.and(&p.z);
+        ac.xor(&x1z2);
+        ac.popcount() % 2 == 0
+    }
+
+    pub unsafe fn get_boolean_vec(&self, nb_qubits: usize) -> Vec<bool> {
+        let mut vec_z = self.z.get_boolean_vec();
+        let mut vec_x = self.x.get_boolean_vec();
+        vec_z.truncate(nb_qubits);
+        vec_x.truncate(nb_qubits);
+        vec_z.append(&mut vec_x);
+        vec_z
+    }
+
     pub unsafe fn pauli_product_mult(&mut self, p: &PauliProduct) {
         let mut x1z2 = self.z.clone();
         x1z2.and(&p.x);

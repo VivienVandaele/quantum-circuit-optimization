@@ -82,6 +82,15 @@ impl Tableau {
         self.x[qubits[1]].xor(&a);
     }
 
+    pub unsafe fn append_cz(&mut self, qubits: Vec<usize>) {
+        self.append_s(qubits[0]);
+        self.append_s(qubits[1]);
+        self.append_cx(qubits.to_vec());
+        self.append_s(qubits[1]);
+        self.append_z(qubits[1]);
+        self.append_cx(qubits);
+    }
+
     pub unsafe fn extract_pauli_product(&self, col: usize) -> PauliProduct {
         let mut z = BitVector::new(self.nb_qubits);
         let mut x = BitVector::new(self.nb_qubits);
@@ -201,6 +210,142 @@ impl Tableau {
         }
         if !inverse {
             let mut c2 = Circuit::new(self.nb_qubits);
+            for (gate, qubits) in c.circ.into_iter().rev() {
+                c2.circ.push((gate.to_string(), qubits.to_vec()));
+                if gate == "s" { c2.circ.push(("z".into(), qubits.to_vec())); }
+            }
+            return c2;
+        }
+        c
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TableauColumnMajor {
+    pub nb_qubits: usize,
+    pub stabs: Vec<PauliProduct>,
+    pub destabs: Vec<PauliProduct>,
+}
+
+impl TableauColumnMajor {
+    pub unsafe fn new(nb_qubits: usize) -> Self {
+        TableauColumnMajor {
+            nb_qubits: nb_qubits,
+            stabs: TableauColumnMajor::init_stabs(nb_qubits),
+            destabs: TableauColumnMajor::init_destabs(nb_qubits),
+        }
+    }
+
+    unsafe fn init_stabs(nb_qubits: usize) -> Vec<PauliProduct> {
+        let mut vec = Vec::new();
+        for i in 0..nb_qubits {
+            let mut bv = BitVector::new(nb_qubits);
+            bv.xor_bit(i);
+            vec.push(PauliProduct::new(bv, BitVector::new(nb_qubits), false));
+        }
+        vec
+    }
+
+    unsafe fn init_destabs(nb_qubits: usize) -> Vec<PauliProduct> {
+        let mut vec = Vec::new();
+        for i in 0..nb_qubits {
+            let mut bv = BitVector::new(nb_qubits);
+            bv.xor_bit(i);
+            vec.push(PauliProduct::new(BitVector::new(nb_qubits), bv, false));
+        }
+        vec
+    }
+
+    pub fn prepend_x(&mut self, qubit: usize) {
+        self.stabs[qubit].sign ^= true;
+    }
+
+    pub fn prepend_z(&mut self, qubit: usize) {
+        self.destabs[qubit].sign ^= true;
+    }
+
+    pub unsafe fn prepend_v(&mut self, qubit: usize) {
+        self.stabs[qubit].pauli_product_mult(&self.destabs[qubit]);
+    }
+
+    pub unsafe fn prepend_s(&mut self, qubit: usize) {
+        self.destabs[qubit].pauli_product_mult(&self.stabs[qubit]);
+    }
+
+    pub unsafe fn prepend_h(&mut self, qubit: usize) {
+        self.prepend_s(qubit);
+        self.prepend_v(qubit);
+        self.prepend_s(qubit);
+    }
+
+    pub unsafe fn prepend_cx(&mut self, qubits: Vec<usize>) {
+        let p = self.stabs[qubits[0]].clone();
+        self.stabs[qubits[1]].pauli_product_mult(&p);
+        let p = self.destabs[qubits[1]].clone();
+        self.destabs[qubits[0]].pauli_product_mult(&p);
+    }
+
+    pub unsafe fn to_circ(&self, inverse: bool) -> Circuit {
+        let mut tab = self.clone();
+        let mut c = Circuit::new(tab.nb_qubits);
+        for i in 0..tab.nb_qubits {
+            if let Some(index) = tab.stabs.iter().position(|p| p.x.get(i) ) {
+                for j in (i+1)..tab.nb_qubits {
+                    if tab.stabs[j].x.get(i) && j != index {
+                        tab.prepend_cx(vec![index, j]);
+                        c.circ.push(("cx".into(), vec![index, j]));
+                    }
+                }
+                if tab.destabs[index].x.get(i) {
+                    tab.prepend_s(index);
+                    c.circ.push(("s".into(), vec![index]));
+                }
+                tab.prepend_h(index);
+                c.circ.push(("h".into(), vec![index]));
+            }
+            if !tab.destabs[i].x.get(i) {
+                let index = tab.destabs.iter().position(|p| p.x.get(i)).unwrap();
+                tab.prepend_cx(vec![i, index]);
+                c.circ.push(("cx".into(), vec![i, index]));
+            }
+            for j in 0..tab.nb_qubits {
+                if tab.destabs[j].x.get(i) && j != i {
+                    tab.prepend_cx(vec![j, i]);
+                    c.circ.push(("cx".into(), vec![j, i]));
+                }
+            }
+            for j in 0..tab.nb_qubits {
+                if tab.stabs[j].z.get(i) && j != i {
+                    tab.prepend_cx(vec![i, j]);
+                    c.circ.push(("cx".into(), vec![i, j]));
+                }
+            }
+            for j in 0..tab.nb_qubits {
+                if tab.destabs[j].z.get(i) && j != i {
+                    tab.prepend_cx(vec![i, j]);
+                    c.circ.push(("cx".into(), vec![i, j]));
+                    tab.prepend_s(j);
+                    c.circ.push(("s".into(), vec![j]));
+                    tab.prepend_cx(vec![i, j]);
+                    c.circ.push(("cx".into(), vec![i, j]));
+                }
+            }
+            if tab.destabs[i].z.get(i) {
+                tab.prepend_s(i);
+                c.circ.push(("s".into(), vec![i]));
+            }
+            if tab.stabs[i].sign {
+                tab.prepend_x(i);
+                c.circ.push(("x".into(), vec![i]));
+            }
+            if tab.destabs[i].sign {
+                tab.prepend_z(i);
+                c.circ.push(("z".into(), vec![i]));
+            }
+        }
+        c.circ.reverse();
+        if !inverse {
+            let mut c2 = Circuit::new(tab.nb_qubits);
             for (gate, qubits) in c.circ.into_iter().rev() {
                 c2.circ.push((gate.to_string(), qubits.to_vec()));
                 if gate == "s" { c2.circ.push(("z".into(), qubits.to_vec())); }

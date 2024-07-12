@@ -17,12 +17,49 @@ impl BitVector {
         }
     }
 
+    pub unsafe fn new_block_size(nb_blocks: usize) -> Self {
+        BitVector {
+            blocks: BitVector::init_blocks(nb_blocks * BitVector::BLOCK_SIZE - 1),
+        }
+    }
+
+    pub unsafe fn from_integer_vec(vec: Vec<i128>) -> Self {
+        let mut bv = BitVector::new(vec.len() * 128 - 1);
+        let mut arr: [i32; BitVector::LANES] = [0; BitVector::LANES];
+        let mut block_index = 0;
+        let mut index = 0;
+        for v in vec {
+            let mut val = v.clone();
+            for i in 0..4 {
+                arr[index] = val as u32 as i32;
+                index += 1;
+                if i < 3 {
+                    val = val >> 32;
+                }
+            }
+            if index == 8 {
+                index = 0;
+                bv.blocks[block_index] = _mm256_load_epi32(arr.as_ptr());
+                block_index += 1;
+                arr = [0; BitVector::LANES];
+            }
+        }
+        if index > 0 {
+            bv.blocks[block_index] = _mm256_load_epi32(arr.as_ptr());
+        }
+        bv
+    }
+
     unsafe fn init_blocks(nb_bits: usize) -> Vec<__m256i> {
         let mut vec: Vec<__m256i> = Vec::with_capacity(nb_bits / BitVector::BLOCK_SIZE + 1);
         for _ in 0..vec.capacity() {
             vec.push(_mm256_setzero_si256());
         }
         vec
+    }
+
+    pub fn size(&self) -> usize {
+        self.blocks.len() * BitVector::BLOCK_SIZE
     }
 
     #[target_feature(enable = "avx2")]
@@ -94,6 +131,35 @@ impl BitVector {
         }
     }
 
+    #[target_feature(enable = "avx2")]
+    pub unsafe fn extend_vec(&mut self, vec: Vec<bool>, nb_bits: usize) {
+        let mut bit = nb_bits;
+        let mut block_index = bit / BitVector::BLOCK_SIZE;
+        bit = bit % BitVector::BLOCK_SIZE;
+        let mut lane_index = bit / BitVector::LANE_SIZE;
+        bit = bit % BitVector::LANE_SIZE;
+        let mut arr: [i32; BitVector::LANES] = [0; BitVector::LANES];
+
+        for val in vec {
+            if bit == BitVector::LANE_SIZE {
+                bit = 0;
+                lane_index += 1;
+                if lane_index == BitVector::LANES {
+                    lane_index = 0;
+                    self.blocks[block_index] = xor_256(_mm256_load_epi32(arr.as_ptr()), self.blocks[block_index]);
+                    block_index += 1;
+                    self.blocks.push(_mm256_setzero_si256());
+                    arr = [0; BitVector::LANES];
+                }
+            }
+            if val {
+                arr[lane_index] ^= 1 << bit;
+            }
+            bit += 1;
+        }
+        self.blocks[block_index] = xor_256(_mm256_load_epi32(arr.as_ptr()), self.blocks[block_index]);
+    }
+
     pub unsafe fn get_boolean_vec(&self) -> Vec<bool> {
         let mut vec: Vec<bool> = Vec::with_capacity(self.blocks.len() * BitVector::BLOCK_SIZE);
         for block_index in 0..self.blocks.len() {
@@ -102,6 +168,21 @@ impl BitVector {
                 for i in 0..32 {
                     vec.push(arr[j] & (1 << i) != 0);
                 }
+            }
+        }
+        vec
+    }
+
+    pub unsafe fn get_integer_vec(&self) -> Vec<i128> {
+        let mut vec: Vec<i128> = Vec::with_capacity(self.blocks.len() * 2);
+        for block_index in 0..self.blocks.len() {
+            let arr = self.extract_block(block_index);
+            for k in 0..2 {
+                let mut integer: i128 = 0;
+                for j in 0..4 {
+                    integer ^= (arr[k*4 + j] as u32 as i128) << (32 * j);
+                }
+                vec.push(integer);
             }
         }
         vec
