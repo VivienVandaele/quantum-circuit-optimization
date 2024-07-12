@@ -11,7 +11,7 @@ where ```file.qc``` is any .qc file.
 - ```BBMerge``` runs the BBMerge algorithm
 - ```FastTMerge``` runs the FastTMerge algorithm
 - ```InternalHOpt``` runs the InternalHOpt algorithm
-- ```TOHPE``` runs the TOHPE algorith
+- ```TOHPE``` runs the TOHPE algorithm
 - ```FastTODD``` runs the FastTODD algorithm
 
 If no options are provided, then the FastTMerge, InternalHOpt and FastTODD algorithms will be applied.
