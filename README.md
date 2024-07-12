@@ -1,7 +1,7 @@
 Rust implementation of quantum circuits optimization algorithms presented in the following papers:
 - BBMerge and FastTMerge algorithms from [Optimal number of parametrized rotations and Hadamard gates in parametrized Clifford circuits with non-repeated parameters](https://arxiv.org/abs/2407.07846)
-- InternalHOpt algorithm from [Optimal Hadamard gate count for Clifford+T synthesis of Pauli rotations sequences](https://arxiv.org/abs/2302.07040).
-- TOHPE and FastTODD algorithms from [Lower T-count with faster algorithms](https://arxiv.org/abs/2407.08695).
+- InternalHOpt algorithm from [Optimal Hadamard gate count for Clifford+T synthesis of Pauli rotations sequences](https://arxiv.org/abs/2302.07040)
+- TOHPE and FastTODD algorithms from [Lower T-count with faster algorithms](https://arxiv.org/abs/2407.08695)
 
 ### Usage
 [Install rust](https://www.rust-lang.org/tools/install) and run ```cargo +nightly run -r [OPTIONS] file.qc```
