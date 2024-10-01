@@ -2,7 +2,7 @@ use crate::tableau::{Tableau, TableauColumnMajor};
 use crate::circuit::Circuit;
 use std::collections::HashMap;
 
-pub  fn bb_merge(c_in: Circuit) -> Circuit {
+pub fn bb_merge(c_in: Circuit) -> Circuit {
     let nb_qubits = c_in.nb_qubits;
     let v = rank_vector(&c_in);
     let mut r = vec![1; v.len()];
@@ -63,7 +63,7 @@ pub  fn bb_merge(c_in: Circuit) -> Circuit {
     c
 }
 
-pub  fn fast_t_merge(c_in: Circuit) -> Circuit {
+pub fn fast_t_merge(c_in: Circuit) -> Circuit {
     let nb_qubits = c_in.nb_qubits;
     let v = rank_vector(&c_in);
     let mut w = v.clone();
@@ -197,7 +197,7 @@ pub  fn fast_t_merge(c_in: Circuit) -> Circuit {
     tab
 }
 
-pub  fn rank_vector(c_in: &Circuit) -> Vec::<bool> {
+pub fn rank_vector(c_in: &Circuit) -> Vec::<bool> {
     let mut tab = reverse_diagonalization(c_in);
     let mut vec = Vec::new();
     for (gate, q) in &c_in.circ {

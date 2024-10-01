@@ -16,7 +16,7 @@ impl PauliProduct {
         }
     }
 
-    pub  fn is_commuting(&self, p: &PauliProduct) -> bool {
+    pub fn is_commuting(&self, p: &PauliProduct) -> bool {
         let mut x1z2 = self.z.clone();
         x1z2.and(&p.x);
         let mut ac = self.x.clone();
@@ -25,7 +25,7 @@ impl PauliProduct {
         ac.popcount() % 2 == 0
     }
 
-    pub  fn get_boolean_vec(&self, nb_qubits: usize) -> Vec<bool> {
+    pub fn get_boolean_vec(&self, nb_qubits: usize) -> Vec<bool> {
         let mut vec_z = self.z.get_boolean_vec();
         let mut vec_x = self.x.get_boolean_vec();
         vec_z.truncate(nb_qubits);
@@ -34,7 +34,7 @@ impl PauliProduct {
         vec_z
     }
 
-    pub  fn pauli_product_mult(&mut self, p: &PauliProduct) {
+    pub fn pauli_product_mult(&mut self, p: &PauliProduct) {
         let mut x1z2 = self.z.clone();
         x1z2.and(&p.x);
         let mut ac = self.x.clone();

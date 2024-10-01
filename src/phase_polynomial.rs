@@ -9,14 +9,14 @@ pub struct PhasePolynomial {
 }
 
 impl PhasePolynomial {
-    pub  fn new(nb_qubits: usize) -> Self {
+    pub fn new(nb_qubits: usize) -> Self {
         PhasePolynomial {
             nb_qubits: nb_qubits,
             table: Vec::new(),
         }
     }
 
-    pub  fn clifford_correction(&self, table: &Vec<BitVector>, nb_qubits: usize) -> Tableau {
+    pub fn clifford_correction(&self, table: &Vec<BitVector>, nb_qubits: usize) -> Tableau {
         let mut tab = Tableau::new(nb_qubits);
         for i in 0..nb_qubits {
             for j in (i+1)..nb_qubits {
@@ -35,7 +35,7 @@ impl PhasePolynomial {
         tab
     }
 
-    pub  fn to_circ(&self) -> Circuit {
+    pub fn to_circ(&self) -> Circuit {
         let mut c = Circuit::new(self.nb_qubits);
         for z in &self.table {
             let mut cnot_circ = Circuit::new(self.nb_qubits);

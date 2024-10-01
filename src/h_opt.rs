@@ -113,7 +113,7 @@ use crate::circuit::Circuit;
     tab
 }
 
-pub  fn internal_h_opt(c_in: &Circuit) -> Circuit {
+pub fn internal_h_opt(c_in: &Circuit) -> Circuit {
     let mut tab = h_opt_reverse(c_in);
     let mut c = tab.to_circ(false);
     for (gate, q) in &c_in.circ {

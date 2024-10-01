@@ -5,7 +5,7 @@ Rust implementation of quantum circuits optimization algorithms presented in the
 
 ### Usage
 [Install rust](https://www.rust-lang.org/tools/install) and run ```cargo +nightly run -r [OPTIONS] file.qc```
-where ```file.qc``` is any .qc file.
+where ```file.qc``` is any .qc file. If your machine supports AVX2, it can be enabled with ```RUSTFLAGS="-C target-cpu=native" cargo run -r [OPTIONS] file.qc```.
 
 ```[OPTIONS]``` are (case-insensitive and in no order):
 - ```BBMerge``` runs the BBMerge algorithm
