@@ -11,7 +11,7 @@ pub struct Tableau {
 }
 
 impl Tableau {
-    pub unsafe fn new(nb_qubits: usize) -> Self {
+    pub  fn new(nb_qubits: usize) -> Self {
         Tableau {
             nb_qubits: nb_qubits,
             z: Tableau::init_z(nb_qubits),
@@ -20,7 +20,7 @@ impl Tableau {
         }
     }
 
-    unsafe fn init_z(nb_qubits: usize) -> Vec<BitVector> {
+     fn init_z(nb_qubits: usize) -> Vec<BitVector> {
         let mut vec = Vec::new();
         for i in 0..nb_qubits {
             let mut bv = BitVector::new(nb_qubits << 1);
@@ -30,7 +30,7 @@ impl Tableau {
         vec
     }
 
-    unsafe fn init_x(nb_qubits: usize) -> Vec<BitVector> {
+     fn init_x(nb_qubits: usize) -> Vec<BitVector> {
         let mut vec = Vec::new();
         for i in 0..nb_qubits {
             let mut bv = BitVector::new(nb_qubits << 1);
@@ -40,15 +40,15 @@ impl Tableau {
         vec
     }
 
-    pub unsafe fn append_x(&mut self, qubit: usize) {
+    pub  fn append_x(&mut self, qubit: usize) {
         self.signs.xor(&self.z[qubit]);
     }
 
-    pub unsafe fn append_z(&mut self, qubit: usize) {
+    pub  fn append_z(&mut self, qubit: usize) {
         self.signs.xor(&self.x[qubit]);
     }
 
-    pub unsafe fn append_v(&mut self, qubit: usize) {
+    pub  fn append_v(&mut self, qubit: usize) {
         let mut a = self.x[qubit].clone();
         a.negate();
         a.and(&self.z[qubit]);
@@ -56,20 +56,20 @@ impl Tableau {
         self.x[qubit].xor(&self.z[qubit]);
     }
 
-    pub unsafe fn append_s(&mut self, qubit: usize) {
+    pub  fn append_s(&mut self, qubit: usize) {
         let mut a = self.z[qubit].clone();
         a.and(&self.x[qubit]);
         self.signs.xor(&a);
         self.z[qubit].xor(&self.x[qubit]);
     }
 
-    pub unsafe fn append_h(&mut self, qubit: usize) {
+    pub  fn append_h(&mut self, qubit: usize) {
         self.append_s(qubit);
         self.append_v(qubit);
         self.append_s(qubit);
     }
 
-    pub unsafe fn append_cx(&mut self, qubits: Vec<usize>) {
+    pub  fn append_cx(&mut self, qubits: Vec<usize>) {
         let mut a =  self.z[qubits[0]].clone();
         a.negate();
         a.xor(&self.x[qubits[1]]);
@@ -82,7 +82,7 @@ impl Tableau {
         self.x[qubits[1]].xor(&a);
     }
 
-    pub unsafe fn append_cz(&mut self, qubits: Vec<usize>) {
+    pub  fn append_cz(&mut self, qubits: Vec<usize>) {
         self.append_s(qubits[0]);
         self.append_s(qubits[1]);
         self.append_cx(qubits.to_vec());
@@ -91,7 +91,7 @@ impl Tableau {
         self.append_cx(qubits);
     }
 
-    pub unsafe fn extract_pauli_product(&self, col: usize) -> PauliProduct {
+    pub  fn extract_pauli_product(&self, col: usize) -> PauliProduct {
         let mut z = BitVector::new(self.nb_qubits);
         let mut x = BitVector::new(self.nb_qubits);
         for i in 0..self.nb_qubits {
@@ -101,7 +101,7 @@ impl Tableau {
         PauliProduct::new(z, x, self.signs.get(col))
     }
 
-    pub unsafe fn insert_pauli_product(&mut self, p: PauliProduct, col: usize) {
+    pub  fn insert_pauli_product(&mut self, p: PauliProduct, col: usize) {
         let p_x = p.x.get_boolean_vec();
         let p_z = p.z.get_boolean_vec();
         for i in 0..self.nb_qubits {
@@ -117,29 +117,29 @@ impl Tableau {
         }
     }
 
-    pub unsafe fn prepend_x(&mut self, qubit: usize) {
+    pub  fn prepend_x(&mut self, qubit: usize) {
         self.signs.xor_bit(qubit);
     }
 
-    pub unsafe fn prepend_z(&mut self, qubit: usize) {
+    pub  fn prepend_z(&mut self, qubit: usize) {
         self.signs.xor_bit(qubit + self.nb_qubits);
     }
 
-    pub unsafe fn prepend_s(&mut self, qubit: usize) {
+    pub  fn prepend_s(&mut self, qubit: usize) {
         let stab = self.extract_pauli_product(qubit);
         let mut destab = self.extract_pauli_product(qubit + self.nb_qubits);
         destab.pauli_product_mult(&stab);
         self.insert_pauli_product(destab, qubit + self.nb_qubits);
     }
 
-    pub unsafe fn prepend_h(&mut self, qubit: usize) {
+    pub  fn prepend_h(&mut self, qubit: usize) {
         let stab = self.extract_pauli_product(qubit);
         let destab = self.extract_pauli_product(qubit + self.nb_qubits);
         self.insert_pauli_product(destab, qubit);
         self.insert_pauli_product(stab, qubit + self.nb_qubits);
     }
 
-    pub unsafe fn prepend_cx(&mut self, qubits: Vec<usize>) {
+    pub  fn prepend_cx(&mut self, qubits: Vec<usize>) {
         let stab_ctrl = self.extract_pauli_product(qubits[0]);
         let mut stab_targ = self.extract_pauli_product(qubits[1]);
         let mut destab_ctrl = self.extract_pauli_product(qubits[0] + self.nb_qubits);
@@ -150,7 +150,7 @@ impl Tableau {
         self.insert_pauli_product(destab_ctrl, qubits[0] + self.nb_qubits);
     }
 
-    pub unsafe fn to_circ(&self, inverse: bool) -> Circuit {
+    pub  fn to_circ(&self, inverse: bool) -> Circuit {
         let mut tab = self.clone();
         let mut c = Circuit::new(self.nb_qubits);
         for i in 0..self.nb_qubits {
@@ -228,7 +228,7 @@ pub struct TableauColumnMajor {
 }
 
 impl TableauColumnMajor {
-    pub unsafe fn new(nb_qubits: usize) -> Self {
+    pub  fn new(nb_qubits: usize) -> Self {
         TableauColumnMajor {
             nb_qubits: nb_qubits,
             stabs: TableauColumnMajor::init_stabs(nb_qubits),
@@ -236,7 +236,7 @@ impl TableauColumnMajor {
         }
     }
 
-    unsafe fn init_stabs(nb_qubits: usize) -> Vec<PauliProduct> {
+     fn init_stabs(nb_qubits: usize) -> Vec<PauliProduct> {
         let mut vec = Vec::new();
         for i in 0..nb_qubits {
             let mut bv = BitVector::new(nb_qubits);
@@ -246,7 +246,7 @@ impl TableauColumnMajor {
         vec
     }
 
-    unsafe fn init_destabs(nb_qubits: usize) -> Vec<PauliProduct> {
+     fn init_destabs(nb_qubits: usize) -> Vec<PauliProduct> {
         let mut vec = Vec::new();
         for i in 0..nb_qubits {
             let mut bv = BitVector::new(nb_qubits);
@@ -264,28 +264,28 @@ impl TableauColumnMajor {
         self.destabs[qubit].sign ^= true;
     }
 
-    pub unsafe fn prepend_v(&mut self, qubit: usize) {
+    pub  fn prepend_v(&mut self, qubit: usize) {
         self.stabs[qubit].pauli_product_mult(&self.destabs[qubit]);
     }
 
-    pub unsafe fn prepend_s(&mut self, qubit: usize) {
+    pub  fn prepend_s(&mut self, qubit: usize) {
         self.destabs[qubit].pauli_product_mult(&self.stabs[qubit]);
     }
 
-    pub unsafe fn prepend_h(&mut self, qubit: usize) {
+    pub  fn prepend_h(&mut self, qubit: usize) {
         self.prepend_s(qubit);
         self.prepend_v(qubit);
         self.prepend_s(qubit);
     }
 
-    pub unsafe fn prepend_cx(&mut self, qubits: Vec<usize>) {
+    pub  fn prepend_cx(&mut self, qubits: Vec<usize>) {
         let p = self.stabs[qubits[0]].clone();
         self.stabs[qubits[1]].pauli_product_mult(&p);
         let p = self.destabs[qubits[1]].clone();
         self.destabs[qubits[0]].pauli_product_mult(&p);
     }
 
-    pub unsafe fn to_circ(&self, inverse: bool) -> Circuit {
+    pub  fn to_circ(&self, inverse: bool) -> Circuit {
         let mut tab = self.clone();
         let mut c = Circuit::new(tab.nb_qubits);
         for i in 0..tab.nb_qubits {

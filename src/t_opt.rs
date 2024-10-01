@@ -1,7 +1,7 @@
 use crate::bit_vector::BitVector;
 use hashbrown::HashMap;
 
-pub unsafe fn proper(mut table: Vec<BitVector>) -> Vec<BitVector> {
+pub  fn proper(mut table: Vec<BitVector>) -> Vec<BitVector> {
     let mut map = HashMap::new();
     let mut to_remove: Vec<usize> = Vec::new();
     for i in 0..table.len() {
@@ -25,7 +25,7 @@ pub unsafe fn proper(mut table: Vec<BitVector>) -> Vec<BitVector> {
     table
 }
 
-pub unsafe fn to_remove(table: &Vec<BitVector>) -> Vec<usize> {
+pub  fn to_remove(table: &Vec<BitVector>) -> Vec<usize> {
     let mut map = HashMap::new();
     let mut to_remove: Vec<usize> = Vec::new();
     for i in 0..table.len() {
@@ -45,7 +45,7 @@ pub unsafe fn to_remove(table: &Vec<BitVector>) -> Vec<usize> {
     to_remove
 }
 
-pub unsafe fn kernel(matrix: &mut Vec<BitVector>,augmented_matrix: &mut Vec<BitVector>,
+pub  fn kernel(matrix: &mut Vec<BitVector>,augmented_matrix: &mut Vec<BitVector>,
                                pivots: &mut HashMap<usize, usize>) -> Option<BitVector> {
     for i in 0..matrix.len() {
         if pivots.contains_key(&i) { continue; }
@@ -76,8 +76,8 @@ pub unsafe fn kernel(matrix: &mut Vec<BitVector>,augmented_matrix: &mut Vec<BitV
     None
 }
 
-pub unsafe fn tohpe(mut table: Vec<BitVector>, nb_qubits: usize) -> Vec<BitVector> {
-    unsafe fn clear_column(i: usize, matrix: &mut Vec<BitVector>, augmented_matrix: &mut Vec<BitVector>,
+pub  fn tohpe(mut table: Vec<BitVector>, nb_qubits: usize) -> Vec<BitVector> {
+     fn clear_column(i: usize, matrix: &mut Vec<BitVector>, augmented_matrix: &mut Vec<BitVector>,
                            pivots: &mut HashMap<usize, usize>) {
         if !pivots.contains_key(&i) { return; }
         let val = pivots.remove(&i).unwrap();
@@ -225,7 +225,7 @@ pub unsafe fn tohpe(mut table: Vec<BitVector>, nb_qubits: usize) -> Vec<BitVecto
     table
 }
 
-pub unsafe fn fast_todd(mut table: Vec<BitVector>, nb_qubits: usize) -> Vec<BitVector> {
+pub  fn fast_todd(mut table: Vec<BitVector>, nb_qubits: usize) -> Vec<BitVector> {
     loop {
     table = tohpe(table.clone(), nb_qubits);
     let mut matrix = table.clone();

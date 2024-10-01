@@ -2,7 +2,7 @@ use crate::pauli_product::PauliProduct;
 use crate::tableau::Tableau;
 use crate::circuit::Circuit;
 
-unsafe fn implement_pauli_z_rotation_from_pauli_product(tab: &mut Tableau, p: &PauliProduct) -> Circuit {
+ fn implement_pauli_z_rotation_from_pauli_product(tab: &mut Tableau, p: &PauliProduct) -> Circuit {
     let mut c = Circuit::new(tab.nb_qubits);
     let mut cnot_circ = Circuit::new(tab.nb_qubits);
     let pivot = p.z.get_first_one();
@@ -21,7 +21,7 @@ unsafe fn implement_pauli_z_rotation_from_pauli_product(tab: &mut Tableau, p: &P
     c
 }
 
-unsafe fn implement_pauli_z_rotation(tab: &mut Tableau, col: usize) -> Circuit {
+ fn implement_pauli_z_rotation(tab: &mut Tableau, col: usize) -> Circuit {
     let pivot = tab.z.iter().position(|z| z.get(col)).unwrap();
     let mut c = Circuit::new(tab.nb_qubits);
     let mut cnot_circ = Circuit::new(tab.nb_qubits);
@@ -40,7 +40,7 @@ unsafe fn implement_pauli_z_rotation(tab: &mut Tableau, col: usize) -> Circuit {
     c
 }
 
-unsafe fn implement_pauli_rotation(tab: &mut Tableau, col: usize) -> Circuit {
+ fn implement_pauli_rotation(tab: &mut Tableau, col: usize) -> Circuit {
     let mut c = Circuit::new(tab.nb_qubits);
     if let Some(pivot) = tab.x.iter().position(|x| x.get(col)) {
         for j in 0..tab.nb_qubits {
@@ -61,7 +61,7 @@ unsafe fn implement_pauli_rotation(tab: &mut Tableau, col: usize) -> Circuit {
 }
 
 
-unsafe fn implement_tof(tab: &mut Tableau, cols: Vec::<usize>, h_gate: bool) -> Circuit {
+ fn implement_tof(tab: &mut Tableau, cols: Vec::<usize>, h_gate: bool) -> Circuit {
     let mut c = Circuit::new(tab.nb_qubits);
     c.append(implement_pauli_rotation(tab, cols[0]).circ);
     c.append(implement_pauli_rotation(tab, cols[1]).circ);
@@ -84,7 +84,7 @@ unsafe fn implement_tof(tab: &mut Tableau, cols: Vec::<usize>, h_gate: bool) -> 
     c
 }
 
-unsafe fn h_opt_reverse(c_in: &Circuit) -> Tableau{
+ fn h_opt_reverse(c_in: &Circuit) -> Tableau{
     let mut tab = Tableau::new(c_in.nb_qubits);
     for (gate, q) in &c_in.circ {
         match &gate[..] {
@@ -113,7 +113,7 @@ unsafe fn h_opt_reverse(c_in: &Circuit) -> Tableau{
     tab
 }
 
-pub unsafe fn internal_h_opt(c_in: &Circuit) -> Circuit {
+pub  fn internal_h_opt(c_in: &Circuit) -> Circuit {
     let mut tab = h_opt_reverse(c_in);
     let mut c = tab.to_circ(false);
     for (gate, q) in &c_in.circ {
