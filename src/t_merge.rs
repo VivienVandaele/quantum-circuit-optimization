@@ -2,7 +2,7 @@ use crate::tableau::{Tableau, TableauColumnMajor};
 use crate::circuit::Circuit;
 use std::collections::HashMap;
 
-pub unsafe fn bb_merge(c_in: Circuit) -> Circuit {
+pub fn bb_merge(c_in: Circuit) -> Circuit {
     let nb_qubits = c_in.nb_qubits;
     let v = rank_vector(&c_in);
     let mut r = vec![1; v.len()];
@@ -63,7 +63,7 @@ pub unsafe fn bb_merge(c_in: Circuit) -> Circuit {
     c
 }
 
-pub unsafe fn fast_t_merge(c_in: Circuit) -> Circuit {
+pub fn fast_t_merge(c_in: Circuit) -> Circuit {
     let nb_qubits = c_in.nb_qubits;
     let v = rank_vector(&c_in);
     let mut w = v.clone();
@@ -141,7 +141,7 @@ pub unsafe fn fast_t_merge(c_in: Circuit) -> Circuit {
     c
 }
 
-unsafe fn diagonalize_pauli_rotation(tab: &mut Tableau, col: usize) -> bool {
+ fn diagonalize_pauli_rotation(tab: &mut Tableau, col: usize) -> bool {
     if let Some(pivot) = tab.x.iter().position(|x| x.get(col)) {
         for j in 0..tab.nb_qubits {
             if tab.x[j].get(col) && j != pivot {
@@ -157,7 +157,7 @@ unsafe fn diagonalize_pauli_rotation(tab: &mut Tableau, col: usize) -> bool {
     false
 }
 
-unsafe fn diagonalize_tof(tab: &mut Tableau, cols: Vec::<usize>, h_gate: bool) -> Vec::<bool> {
+ fn diagonalize_tof(tab: &mut Tableau, cols: Vec::<usize>, h_gate: bool) -> Vec::<bool> {
     let mut vec = Vec::new();
     vec.push(diagonalize_pauli_rotation(tab, cols[0]));
     vec.push(diagonalize_pauli_rotation(tab, cols[1]));
@@ -168,7 +168,7 @@ unsafe fn diagonalize_tof(tab: &mut Tableau, cols: Vec::<usize>, h_gate: bool) -
     vec
 }
 
-unsafe fn reverse_diagonalization(c_in: &Circuit) -> Tableau {
+ fn reverse_diagonalization(c_in: &Circuit) -> Tableau {
     let mut tab = Tableau::new(c_in.nb_qubits);
     for (gate, q) in &c_in.circ {
         match &gate[..] {
@@ -197,7 +197,7 @@ unsafe fn reverse_diagonalization(c_in: &Circuit) -> Tableau {
     tab
 }
 
-pub unsafe fn rank_vector(c_in: &Circuit) -> Vec::<bool> {
+pub fn rank_vector(c_in: &Circuit) -> Vec::<bool> {
     let mut tab = reverse_diagonalization(c_in);
     let mut vec = Vec::new();
     for (gate, q) in &c_in.circ {

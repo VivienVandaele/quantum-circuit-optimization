@@ -1,4 +1,3 @@
-#![feature(stdsimd)]
 mod circuit;
 mod pauli_product;
 mod phase_polynomial;
@@ -47,7 +46,7 @@ fn main() {
     let output_filename = &("circuits/outputs/".to_string() + &filename);
     let (mut c, header, qubits_mapping) = Circuit::from_qc(&args[file_index.unwrap()]);
     println!("File {} processed\n", filename);
-    unsafe {
+     {
         if do_bb_merge { println!("Running BBMerge algorithm"); c = bb_merge(c); }
         if do_fast_t_merge { println!("Running FastTMerge algorithm"); c = fast_t_merge(c); }
         if do_internal_h_opt { println!("Running InternalHOpt algorithm"); c = internal_h_opt(&c); }

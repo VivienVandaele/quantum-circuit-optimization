@@ -208,7 +208,7 @@ impl Circuit {
         c_out
     }
 
-    pub unsafe fn t_opt(&self, optimizer: String) -> Circuit {
+    pub fn t_opt(&self, optimizer: String) -> Circuit {
         SlicedCircuit::from_circ(self).t_opt(optimizer)
     }
 }
@@ -223,7 +223,7 @@ pub struct SlicedCircuit {
 }
 
 impl SlicedCircuit {
-    pub unsafe fn new(nb_qubits: usize) -> Self {
+    pub fn new(nb_qubits: usize) -> Self {
         SlicedCircuit {
             nb_qubits: nb_qubits,
             init_circuit: Circuit::new(nb_qubits),
@@ -232,7 +232,7 @@ impl SlicedCircuit {
         }
     }
 
-    pub unsafe fn from_circ(c: &Circuit) -> SlicedCircuit {
+    pub fn from_circ(c: &Circuit) -> SlicedCircuit {
         let mut sliced_c = SlicedCircuit::new(c.nb_qubits);
         sliced_c.init_circuit.ancillas = c.ancillas.clone();
         let mut first_t = 0;
@@ -280,7 +280,7 @@ impl SlicedCircuit {
         sliced_c
     }
 
-    pub unsafe fn t_opt(&mut self, optimizer: String) -> Circuit {
+    pub fn t_opt(&mut self, optimizer: String) -> Circuit {
         let mut c = self.init_circuit.clone();
         for i in 0..self.phase_polynomials.len() {
             let table = self.phase_polynomials[i].table.clone();
