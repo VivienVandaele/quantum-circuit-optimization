@@ -12,7 +12,7 @@ use crate::t_merge::*;
 use std::path::Path;
 
 fn help() {
-    println!("cargo +nightly run -r [OPTIONS] file.qc\n\nOptional arguments (case-insensitive, no order):");
+    println!("cargo run -r [OPTIONS] file.qc\n\nOptional arguments (case-insensitive, no order):");
     println!("'BBMerge': runs the BBMerge algorithm");
     println!("'FastTMerge': runs the FastTMerge algorithm");
     println!("'InternalHOpt': runs the InternalHOpt algorithm");
