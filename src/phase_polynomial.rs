@@ -22,13 +22,13 @@ impl PhasePolynomial {
             for j in (i+1)..nb_qubits {
                 let z1 = (0..table.len()).filter(|&k| table[k].get(i) & table[k].get(j)).count();
                 let z2 = (0..self.table.len()).filter(|&k| self.table[k].get(i) & self.table[k].get(j)).count();
-                for _ in 0..((((z1 - z2) % 8 + 8) % 8) / 2) {
+                for _ in 0..((z1.wrapping_sub(z2) & 7) / 2) {
                     tab.append_cz(vec![i, j]);
                 }
             }
             let z1 = (0..table.len()).filter(|&k| table[k].get(i)).count();
             let z2 = (0..self.table.len()).filter(|&k| self.table[k].get(i)).count();
-            for _ in 0..((((z1 - z2) % 8 + 8) % 8) / 2) {
+            for _ in 0..((z1.wrapping_sub(z2) & 7) / 2) {
                 tab.append_s(i);
             }
         }
