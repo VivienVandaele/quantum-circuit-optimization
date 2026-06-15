@@ -25,13 +25,10 @@ impl PauliProduct {
         ac.popcount() % 2 == 0
     }
 
-    pub fn get_boolean_vec(&self, nb_qubits: usize) -> Vec<bool> {
-        let mut vec_z = self.z.get_boolean_vec();
-        let mut vec_x = self.x.get_boolean_vec();
-        vec_z.truncate(nb_qubits);
-        vec_x.truncate(nb_qubits);
-        vec_z.append(&mut vec_x);
-        vec_z
+    pub fn get_integer_vec(&self) -> Vec<i128> {
+        let mut vec = self.z.get_integer_vec();
+        vec.append(&mut self.x.get_integer_vec());
+        vec
     }
 
     pub fn pauli_product_mult(&mut self, p: &PauliProduct) {

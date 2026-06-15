@@ -1,6 +1,7 @@
 use crate::tableau::{Tableau, TableauColumnMajor};
 use crate::circuit::Circuit;
 use std::collections::HashMap;
+use ahash::RandomState;
 
 pub fn bb_merge(c_in: Circuit) -> Circuit {
     let nb_qubits = c_in.nb_qubits;
@@ -8,7 +9,7 @@ pub fn bb_merge(c_in: Circuit) -> Circuit {
     let mut r = vec![1; v.len()];
     let mut tab = TableauColumnMajor::new(nb_qubits);
     let mut pauli_products = Vec::new();
-    let mut map: HashMap::<_, Vec<(usize, bool)>> = HashMap::new();
+    let mut map: HashMap<_, Vec<(usize, bool)>, RandomState> = HashMap::default();
     let mut t = 0;
     let c_in = c_in.decompose_tof();
     for (gate, q) in &c_in.circ {
@@ -20,7 +21,7 @@ pub fn bb_merge(c_in: Circuit) -> Circuit {
             "cx" => { tab.prepend_cx(q.to_vec()); },
             "t" => { 
                 let p = tab.stabs[q[0]].clone();
-                let vec = p.get_boolean_vec(nb_qubits);
+                let vec = p.get_integer_vec();
                 let mut merge = map.contains_key(&vec);
                 let mut value = Vec::new();
                 if merge {
@@ -66,11 +67,10 @@ pub fn bb_merge(c_in: Circuit) -> Circuit {
 pub fn fast_t_merge(c_in: Circuit) -> Circuit {
     let nb_qubits = c_in.nb_qubits;
     let v = rank_vector(&c_in);
-    let mut w = v.clone();
     let mut r = vec![1; v.len()];
     let mut tab = TableauColumnMajor::new(nb_qubits);
     let mut pauli_products = Vec::new();
-    let mut map: HashMap::<_, Vec<(usize, bool)>> = HashMap::new();
+    let mut map: HashMap<_, Vec<(usize, bool)>, RandomState> = HashMap::default();
     let mut t = 0;
     let c_in = c_in.decompose_tof();
     for (gate, q) in &c_in.circ {
@@ -80,37 +80,25 @@ pub fn fast_t_merge(c_in: Circuit) -> Circuit {
             "z" => { tab.prepend_z(q[0]); },
             "s" => { tab.prepend_s(q[0]); tab.prepend_z(q[0]); },
             "cx" => { tab.prepend_cx(q.to_vec()); },
-            "t" => { 
+            "t" => {
                 let p = tab.stabs[q[0]].clone();
-                let vec = p.get_boolean_vec(nb_qubits);
+                let vec = p.get_integer_vec();
                 let mut merge = map.contains_key(&vec);
                 let mut value = Vec::new();
                 if merge {
                     value = map.remove(&vec).unwrap();
                     let (index, sign) = value.pop().unwrap();
+                    let mut merged_between = false;
                     for i in (index+1)..t {
-                        if v[i] && !p.is_commuting(&pauli_products[i]) {
-                            if r[i] == 1 {
-                                merge = false;
-                            }
-                            else {
-                                for j in (i+1)..t {
-                                    if w[j] && r[j] == 1 && !p.is_commuting(&pauli_products[j]) {
-                                        merge = false;
-                                        break;
-                                    }
-                                }
-                            }
+                        if r[i] != 1 && v[i] { merged_between = true; break; }
+                    }
+                    for i in (index+1)..t {
+                        if r[i] == 1 && (v[i] || merged_between) && !p.is_commuting(&pauli_products[i]) {
+                            merge = false;
                             break;
                         }
                     }
                     if merge {
-                        if v[index] {
-                            for i in (index+1)..t {
-                                w[i] = true;
-                            }
-                        }
-                        w[index] = false;
                         r[index] = 0;
                         r[t] = 0;
                         if sign == p.sign { r[t] = 2; tab.prepend_s(q[0]); }
